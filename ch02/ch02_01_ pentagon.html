@@ -18,7 +18,7 @@
     in vec3 aVertexPosition;
 
     void main(void) {
-      // Simply set the position in clipspace coordinates
+      // Set the position in clipspace coordinates
       gl_Position = vec4(aVertexPosition, 1.0);
     }
   </script>
@@ -44,7 +44,7 @@
     // across the application
     let gl,
       program,
-      squareVAO,
+      squareVertexBuffer,
       squareIndexBuffer,
       indices;
 
@@ -127,19 +127,10 @@
       // Indices defined in counter-clockwise order
       indices = [0, 1, 2, 0, 2, 3];
 
-      // Create VAO instance
-      squareVAO = gl.createVertexArray();
-
-      // Bind it so we can work on it
-      gl.bindVertexArray(squareVAO);
-
-      const squareVertexBuffer = gl.createBuffer();
+      // Setting up the VBO
+      squareVertexBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-
-      // Provide instructions for VAO to use data later in draw
-      gl.enableVertexAttribArray(program.aVertexPosition);
-      gl.vertexAttribPointer(program.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
 
       // Setting up the IBO
       squareIndexBuffer = gl.createBuffer();
@@ -147,7 +138,6 @@
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
       // Clean
-      gl.bindVertexArray(null);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     }
@@ -158,14 +148,20 @@
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-      // Bind the VAO
-      gl.bindVertexArray(squareVAO);
+      // Use the buffers we've constructed
+      gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexBuffer);
+      gl.vertexAttribPointer(program.aVertexPosition, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(program.aVertexPosition);
+
+      // Bind IBO
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, squareIndexBuffer);
 
       // Draw to the scene using triangle primitives
-      gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
 
       // Clean
-      gl.bindVertexArray(null);
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     }
 
     // Entry point to our application
